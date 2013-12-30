@@ -1,6 +1,6 @@
 #ifndef ZIPFOR_H
 #define ZIPFOR_H
-/* By Christianbb R. Shelton
+/* By Christian R. Shelton
  * (christian.r.shelton@gmail.com)
  * December 2013
  *
@@ -147,7 +147,7 @@ public:
 	inline zipittT operator++(int) { zipittT ret(*this); ++(*this); return ret; }
 
 	inline auto operator*() const
-	-> decltype(deref_subset(*this,
+	-> decltype(deref_subset(std::declval<BaseT>(),
 			typename internal::ct_iota<std::tuple_size<BaseT>::value>::type())) {
 		return deref_subset(*this,
 			typename internal::ct_iota<std::tuple_size<BaseT>::value>::type());
@@ -184,14 +184,14 @@ public:
 	ziplistT(Xs &&...xs) : BaseT(xs...) { }
 
 	auto begin() const
-	-> decltype (begin_subset(*this,
+	-> decltype (begin_subset(std::declval<BaseT>(),
 	    typename internal::ct_iota<std::tuple_size<BaseT>::value>::type())) {
 		return begin_subset(*this,
 		typename internal::ct_iota<std::tuple_size<BaseT>::value>::type());
 	}
 
 	auto end() const 
-	-> decltype (end_subset(*this,
+	-> decltype (end_subset(std::declval<BaseT>(),
 	    typename internal::ct_iota<std::tuple_size<BaseT>::value>::type())) {
 		return end_subset(*this,
 		typename internal::ct_iota<std::tuple_size<BaseT>::value>::type());

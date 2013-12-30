@@ -1,4 +1,37 @@
 zipfor
 ======
 
-"for each" constructs for C++11 that provide iteration over multiple containers at the same time (zipping, or parallel iteration -- not parallel computation)
+for-each constructs for C++11 that provide iteration over multiple
+containers at the same time (zipping, or parallel iteration -- not
+parallel computation)
+
+primarily provides zipfor:
+--------------------------
+can be used as
+
+vector<int> a {1,2,3};
+array<string,3> b {"hello","there","coders"};
+
+zipfor(i,s eachin a,b)
+	cout << i << " => " << b;
+
+
+also provides mapfor:
+---------------------
+
+map<int,string> m{{1,"hello"},{2,"there"},{-3,"stranger"}};
+
+mapfor(i,s eachin m) 
+	cout << i << " => " << b;
+
+
+Notes:
+-----
+
+o This is a header-only "library" so no compilation is necessary.
+o It depends heavily on C++11 (it will not work with C++03 or earlier)
+o It has been tested on g++4.8.1 but nothing else at this point (Dec 2013)
+o It *does* use macros to provide the syntax sugar.
+o Any bug reports would be appreciated.
+
+-Christian
