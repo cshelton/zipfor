@@ -13,7 +13,7 @@ vector<int> a {1,2,3};
 array<string,3> b {"hello","there","coders"};
 
 zipfor(i,s eachin a,b)
-	cout << i << " => " << b;
+	cout << i << " => " << s;
 
 
 also provides mapfor:
@@ -22,7 +22,7 @@ also provides mapfor:
 map<int,string> m{{1,"hello"},{2,"there"},{-3,"stranger"}};
 
 mapfor(i,s eachin m) 
-	cout << i << " => " << b;
+	cout << i << " => " << s;
 
 
 Notes:
