@@ -3,10 +3,15 @@
 /* By Christian R. Shelton
  * (christian.r.shelton@gmail.com)
  * December 2013
+ * 	[original release]
+ * June 2014
+ * 	[added support for single container -- redundant with foreach
+ * 	 fixed it so that it would work with temporary objects
+ * 	 added ittcounter<T> (see below)]
  *
  * Released under MIT software licence:
  * The MIT License (MIT)
- * Copyright (c) 2013 Christian R. Shelton
+ * Copyright (c) 2013-2014 Christian R. Shelton
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,6 +60,25 @@
  * keeping the iterators explicitly or (for vectors, arrays, and the like)
  * keeping a single index (unsigned int).
  *
+ * sometimes, it is useful also to have a counter of the iteration number
+ * for this you can use "ittcounter<TYPE>()" where TYPE is the type of
+ * the counter.  There is a macro icounter for ittcounter<int>
+ * TYPE must have std::numeric_limits<TYPE>::max defined, as well
+ * as being able to be assigned 0 and incremented.
+ *
+ * This *cannot* be the first in the list (as it doesn't have an
+ *  upper bound and the first in the list is used for bound checking)
+ *
+ * use as:
+ *    zipfor(a,b,i eachin x,f,ittcounter<size_t>()) {
+ *    	// blah, blah, blah
+ *    }
+ * or
+ *    zipfor(a,b,i eachin x,f,icounter) {
+ *    	// blah, blah, blah
+ *    }
+ * for an "integer" counter
+ *
  *
  * mapfor:
  * useage:
@@ -74,6 +98,7 @@
 #include <type_traits>
 #include <cstdlib>
 #include <iterator>
+#include <limits>
 
 namespace internal {
 // below from KennyTM on stackexchange:
@@ -154,10 +179,18 @@ public:
 	}
 };
 
+template<typename T>
+struct ziplist_convert_type {
+	typedef typename std::conditional<std::is_rvalue_reference<T>::value,
+			typename std::remove_reference<T>::type,
+			typename std::add_lvalue_reference<T>::type>::type type;
+	//typedef typename std::remove_reference<T>::type type;
+};
+
 template<typename... Ts>
-class ziplistT : private std::tuple<Ts &...> {
+class ziplistT : private std::tuple<typename ziplist_convert_type<Ts>::type...> {
 public:
-	using BaseT = std::tuple<Ts...>;
+	using BaseT = std::tuple<typename ziplist_convert_type<Ts>::type...>;
 	template<std::size_t I>
 	using ittcompT = decltype(std::begin(std::get<I-1>
 								(std::declval<BaseT>())));
@@ -181,7 +214,7 @@ private:
 
 public:
 	template<typename... Xs>
-	ziplistT(Xs &&...xs) : BaseT(xs...) { }
+	ziplistT(Xs &&...xs) : BaseT(std::forward<Xs>(xs)...) { }
 
 	auto begin() const
 	-> decltype (begin_subset(std::declval<BaseT>(),
@@ -199,8 +232,8 @@ public:
 };
 
 template<typename... Ts>
-ziplistT<Ts...> ziplist(Ts &&...ts) {
-	return ziplistT<Ts...>(ts...);
+ziplistT<Ts&&...> ziplist(Ts&&... ts) {
+	return ziplistT<Ts&&...>(std::forward<Ts>(ts)...);
 }
 
 #define eachin ,
@@ -210,11 +243,19 @@ ziplistT<Ts...> ziplist(Ts &&...ts) {
 	else for(auto &V = std::get<I>(BN); \
 				!__zipforbool ; __zipforbool =true) \
 
+#define zipfor1help(V1,...) \
+	for(auto __zipfor : ziplist(__VA_ARGS__)) \
+		_zipforaddvar(V1,0,__zipfor)
+
+/*
 #define zipfor2help(V1,V2,...) \
 	for(auto __zipfor : ziplist(__VA_ARGS__))  \
 		_zipforaddvar(V1,0,__zipfor) \
 		_zipforaddvar(V2,1,__zipfor)
+*/
 
+#define zipfor2help(V1,V2,...) \
+	zipfor1help(V1,__VA_ARGS__) _zipforaddvar(V2,1,__zipfor)
 #define zipfor3help(V1,V2,V3,...) \
 	zipfor2help(V1,V2,__VA_ARGS__) _zipforaddvar(V3,2,__zipfor)
 #define zipfor4help(V1,V2,V3,V4,...) \
@@ -232,6 +273,7 @@ ziplistT<Ts...> ziplist(Ts &&...ts) {
 	zipfor8help(V1,V2,V3,V4,V5,V6,V7,V8,__VA_ARGS__) \
 	_zipforaddvar(V9,8,__zipfor)
 
+#define zipfor1(...) zipfor1help(__VA_ARGS__)
 #define zipfor2(...) zipfor2help(__VA_ARGS__)
 #define zipfor3(...) zipfor3help(__VA_ARGS__)
 #define zipfor4(...) zipfor4help(__VA_ARGS__)
@@ -270,7 +312,7 @@ ziplistT<Ts...> ziplist(Ts &&...ts) {
 	toomany,toomany,toomany,toomany,toomany,toomany,toomany,toomany,\
 	toomany,toomany,toomany,toomany,toomany,\
 	9,wrong,8,wrong,7,wrong,6,wrong,\
-	5,wrong,4,wrong,3,wrong,2,toofew,toofew,toofew,toofew
+	5,wrong,4,wrong,3,wrong,2,toofew,1,toofew,toofew
 
 #define zipfor_CPPX_INVOKE( macro, args )  macro args
 #if 0
@@ -302,5 +344,31 @@ ziplistT<Ts...> ziplist(Ts &&...ts) {
 		_zipforaddvar(V2,1,__mapfor)
 
 #define mapfor(...) mapforhelp(__VA_ARGS__)
+
+template<typename T>
+struct ittcounter {
+	struct iterator {
+		template<typename TT>
+		iterator(TT &&v) : x(std::forward<TT>(v)) {};
+		const T &operator*() const { return x; }
+		const T *operator->() const { return &x; }
+		iterator& operator++() {
+			++x;
+               return *this;
+          }
+          const iterator operator++(int) {
+               iterator ret(*this);
+               ++(*this);
+               return ret;
+          }
+		bool operator==(const iterator &i) const { return x==i.x; }
+		bool operator!=(const iterator &i) const { return x!=i.x; }
+		T x;
+	};
+	constexpr iterator begin() { return iterator(0); }
+	constexpr iterator end() { return iterator(std::numeric_limits<T>::max()); }
+};
+
+#define icounter (ittcounter<int>())
 
 #endif
