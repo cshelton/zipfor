@@ -25,12 +25,30 @@ mapfor(i,s eachin m)
 	cout << i << " => " << s;
 
 
+
+finally, provides ittcounter<T>:
+--------------------------------
+This is a simple container that counter from 0, by 1s
+
+ittcounter<int>() or ittcounter<float>() or ittcounter<size_t>()
+
+icounter is the same as ittcounter<int>()
+
+can be used like:
+
+map<char,string> m{{'a',"apple"},{'b',"ball"},{'c',"chair"}};
+zipfor(v,i eachin m,icounter)
+	cout << i << ": " << v.first << " => " << v.second << endl;
+
+icounter (or ittcounter) should *not* be the first member in list
+	(or the loop will run for a very long time)
+
 Notes:
 -----
 
 o This is a header-only "library" so no compilation is necessary.
 o It depends heavily on C++11 (it will not work with C++03 or earlier)
-o It has been tested on g++4.8.1 but nothing else at this point (Dec 2013)
+o It has been tested on g++4.8.1 but nothing else at this point (Jun 2014)
 o It *does* use macros to provide the syntax sugar.
 o Any bug reports would be appreciated.
 
