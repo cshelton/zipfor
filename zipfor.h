@@ -349,7 +349,7 @@ template<typename T>
 struct ittcounter {
 	struct iterator {
 		template<typename TT>
-		iterator(TT &&v) : x(std::forward<TT>(v)) {};
+		iterator(TT &&v) : x(std::forward<TT>(v)) {}
 		const T &operator*() const { return x; }
 		const T *operator->() const { return &x; }
 		iterator& operator++() {
