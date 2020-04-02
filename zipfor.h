@@ -8,10 +8,13 @@
  * 	[added support for single container -- redundant with foreach
  * 	 fixed it so that it would work with temporary objects
  * 	 added ittcounter<T> (see below)]
+ * April 2020
+ *   [fixed bug with const missing from begin and end for ittcounter
+ *    reported by Stephanie Aubry]
  *
  * Released under MIT software licence:
  * The MIT License (MIT)
- * Copyright (c) 2013-2014 Christian R. Shelton
+ * Copyright (c) 2013-2020 Christian R. Shelton
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -365,8 +368,8 @@ struct ittcounter {
 		bool operator!=(const iterator &i) const { return x!=i.x; }
 		T x;
 	};
-	constexpr iterator begin() { return iterator(0); }
-	constexpr iterator end() { return iterator(std::numeric_limits<T>::max()); }
+	constexpr iterator begin() const { return iterator(0); }
+	constexpr iterator end() const { return iterator(std::numeric_limits<T>::max()); }
 };
 
 #define icounter (ittcounter<int>())

@@ -49,6 +49,7 @@ Notes:
 o This is a header-only "library" so no compilation is necessary.
 o It depends heavily on C++11 (it will not work with C++03 or earlier)
 o It has been tested on g++4.8.1 but nothing else at this point (Jun 2014)
+o It was briefly tested on g++9.3.1 to fix a bug (Apr 2020)
 o It *does* use macros to provide the syntax sugar.
 o Any bug reports would be appreciated.
 
