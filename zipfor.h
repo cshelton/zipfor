@@ -10,7 +10,7 @@
  * 	 added ittcounter<T> (see below)]
  * April 2020
  *   [fixed bug with const missing from begin and end for ittcounter
- *    reported by Stephanie Aubry]
+ *    reported by Stephane Aubry]
  *
  * Released under MIT software licence:
  * The MIT License (MIT)
